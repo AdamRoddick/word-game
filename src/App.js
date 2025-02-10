@@ -16,47 +16,45 @@ function WordGuessGame() {
   const [previousGuesses, setPreviousGuesses] = useState([]);
   const [gameOver, setGameOver] = useState(false);
   const [dictionaryWords, setDictionaryWords] = useState(new Set());
-  const [articleTitle, setArticleTitle] = useState(""); // Store the title of today's article
+  const [articleTitle, setArticleTitle] = useState("");
+  const [articleIntro, setArticleIntro] = useState("");
+  const [showIntro, setShowIntro] = useState(false);
 
-  // Generate today's Wikipedia article based on the current date
   const getTodaysArticle = () => {
     const today = new Date();
-    const dayOfYear = today.getDate(); // Get the day of the year (1-31)
-    const articleIndex = dayOfYear % dailyWikiArticles.length; // Cycle through the articles
+    const dayOfYear = today.getDate();
+    const articleIndex = dayOfYear % dailyWikiArticles.length;
     return dailyWikiArticles[articleIndex];
   };
 
   useEffect(() => {
     async function fetchDictionary() {
       try {
-        const response = await fetch("/words_dictionary.json"); // Load your JSON file from the public folder
+        const response = await fetch("/words_dictionary.json");
         const dictionary = await response.json();
-        setDictionaryWords(new Set(Object.keys(dictionary))); // Convert dictionary keys to a set
+        setDictionaryWords(new Set(Object.keys(dictionary)));
       } catch (error) {
         console.error("Error loading dictionary:", error);
       }
     }
 
     async function fetchWikipediaData() {
-      const article = getTodaysArticle(); // Get the article for today
-      setArticleTitle(article); // Set the article title for display
+      const article = getTodaysArticle();
+      setArticleTitle(article);
       try {
-        // Fetch full Wikipedia article content for today's article
         const response = await fetch(
           `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=true&format=json&origin=*&titles=${article}`
         );
         const data = await response.json();
-
-        // Extract page content dynamically
         const page = Object.values(data.query.pages)[0];
         const text = page.extract;
+        setArticleIntro(text.split(". ")[0] + ".");
 
-        // Process text to count word frequencies
         const frequency = {};
         const words = text
           .toLowerCase()
-          .replace(/[^\w\s]/g, "") // Remove punctuation
-          .split(/\s+/); // Split by whitespace
+          .replace(/[^\w\s]/g, "")
+          .split(/\s+/);
 
         words.forEach((word) => {
           if (word) {
@@ -66,7 +64,6 @@ function WordGuessGame() {
 
         setWordFrequency(frequency);
 
-        // Find all words that appear only once and are valid dictionary words
         const singleOccurrenceWords = Object.keys(frequency).filter(
           (word) => frequency[word] === 1 && dictionaryWords.has(word)
         );
@@ -77,8 +74,8 @@ function WordGuessGame() {
       }
     }
 
-    fetchDictionary(); // Load the dictionary
-    fetchWikipediaData(); // Fetch the Wikipedia data for today
+    fetchDictionary();
+    fetchWikipediaData();
   }, [dictionaryWords]);
 
   const handleChange = (e) => {
@@ -95,30 +92,38 @@ function WordGuessGame() {
     if (count > 0) {
       setPreviousGuesses([...previousGuesses, { word, count }]);
 
-      // Check if the word appears exactly once (correct answer)
       if (correctWords.includes(word)) {
         setMessage(`✅ You found a correct word! "${word}" appears only once.`);
-        setGameOver(true); // Winning condition
+        setGameOver(true);
       } else {
         setMessage(`🟡 "${word}" appears ${count} time(s). Keep going!`);
       }
     } else {
-      // If the word doesn't appear, reveal 3 correct examples
       const examples = correctWords.slice(0, 3).join(", ");
       setMessage(
         `❌ Bust! "${word}" does not appear in the text. Game over. Some correct answers could be: ${examples}`
       );
-      setGameOver(true); // Losing condition
+      setGameOver(true);
     }
 
-    setInput(""); // Clear input after submission
+    setInput("");
   };
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Word Guessing Game</h1>
-        <p>Today's Challenge: {articleTitle}</p>
+        <p>Today's Wikipedia Article: {articleTitle}</p>
+        <div className="intro-container">
+          <button 
+            onMouseEnter={() => setShowIntro(true)} 
+            onMouseLeave={() => setShowIntro(false)} 
+            className="info-button"
+          >
+            Article Intro
+          </button>
+          {showIntro && <div className="article-intro-popup">{articleIntro}</div>}
+        </div>
         <p>Find words that appear only once in the article!</p>
         
         <form onSubmit={handleSubmit} className="form-container">

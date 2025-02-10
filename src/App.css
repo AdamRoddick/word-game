@@ -79,6 +79,42 @@ h1 {
   margin-top: 10px;
 }
 
+/* Article Intro Popup */
+.article-intro-popup {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  width: 300px;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  text-align: left;
+  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+}
+
+.intro-container {
+  position: relative;
+  display: inline-block;
+}
+
+.info-button {
+  background-color: #3a3a3c;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.info-button:hover {
+  background-color: #555;
+}
+
+
 /* Responsive */
 @media (max-width: 500px) {
   .App {
